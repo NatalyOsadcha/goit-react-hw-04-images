@@ -1,107 +1,74 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer} from 'react-toastify';
 import { getSearchImage } from 'components/Api/getSearchImage';
 import Button from './Button/Button';
 import css from './App.module.css';
-import PropTypes from 'prop-types';
 import 'react-toastify/dist/ReactToastify.css';
 import { BallTriangle } from 'react-loader-spinner';
 import Alert from '@mui/material/Alert';
 
-export default class App extends Component {
-  state = {
-    searchImage: '',
-    hits: null,
-    totalHits: null,
-    loading: false,
-    error: '',
-    initialPage: 1,
-    page: 1,
+export default function App() {
+  const [searchImage, setSearchImage] = useState('');
+  const [hits, setHits] = useState(null);
+  const [totalHits, setTotalHits] = useState(null);
+  const [IsLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+
+  const handleSearch = ({ searchImage }) => {
+    setSearchImage(searchImage);
+    setIsLoading(false);
+    setPage(1);
   };
 
-  handleSearch = ({ searchImage }) => {
-    this.setState({ searchImage });
+  const handleLoadMore = page => {
+    setPage(page);
   };
 
-  handleLoadMore = ({ page }) => {
-    this.setState({ page });
-  };
-
-  hideButton = () => {
-    const page = this.state.page;
-    const totalHits = this.state.totalHits;
+  const hideButton = () => {
     const finalPage = Math.ceil(Number(totalHits / 12));
-    if (page === finalPage || Number(totalHits) < 13) {
+    if (page === finalPage ) {
       return 'none';
     }
     return 'block';
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
-    const prevImage = prevState.searchImage;
-    const nextImage = this.state.searchImage.trim();
-    const initialPage = this.state.initialPage;
-
-    if (prevImage !== nextImage && nextImage) {
-      this.setState({ loading: true, hits: [], error: null });
-      getSearchImage(nextImage, initialPage)
-        .then(data => {
-          if (data.hits && data.totalHits)
-            return this.setState({
-              hits: data.hits,
-              totalHits: data.totalHits,
-            });
-          return Promise.reject(data.message);
-        })
-        .catch(error => {
-          this.setState({ error });
-        })
-        .finally(() => this.setState({ loading: false, page: 1 }));
+  useEffect(() => {
+    if (!searchImage) {
+      return;
     }
+    setIsLoading(true);
+    getSearchImage(searchImage, page)
+      .then(data => {
+        console.log(data.hits, data.totalHits)
+        if (data.hits) {
+          setHits(prevHits => [...prevHits, ...data.hits]);
+          setTotalHits(data.totalHits);
+        }
+          
+        return Promise.reject(data.message);
+      })
+      .catch(error => {
+        setError(error);
+      })
+      .finally(() => setIsLoading(false));
+  }, [searchImage, page]);
 
-    if (nextPage !== initialPage && nextPage !== prevPage) {
-      this.setState({ loading: true });
-      getSearchImage(nextImage, nextPage)
-        .then(data => {
-          this.setState(prevState => ({
-            hits: [...prevState.hits, ...data.hits],
-          }));
-        })
-        .finally(() => this.setState({ loading: false }));
-    }
-  }
-
-  render() {
-    const { page, hits, loading, error } = this.state;
-    return (
-      <div className={css.app}>
-        <Searchbar onSubmit={this.handleSearch} />
-        {loading && <BallTriangle color="#4b5cdd" />}
-        {error && <Alert severity="error">Oops, something goes wrong</Alert>}
-        {hits && hits.length === 0 && (
-          <Alert severity="warning">Nothing found for your request</Alert>
-        )}
-        {hits && hits.length > 0 && <ImageGallery hits={hits} />}
-        <Button
-          onClick={this.handleLoadMore}
-          page={page}
-          hideButton={this.hideButton}
-        />
-        <ToastContainer autoClose={3000} />
-      </div>
-    );
-  }
+  return (
+    <div className={css.app}>
+      <Searchbar onSubmit={handleSearch} />
+      {IsLoading && <BallTriangle color="#4b5cdd" />}
+      {error && <Alert severity="error">Oops, something goes wrong</Alert>}
+      {hits && hits.length === 0 && (
+        <Alert severity="warning">Nothing found for your request</Alert>
+      )}
+      {hits && hits.length > 0 && <ImageGallery hits={hits} />}
+      {hits && hits.length > 1 && <Button onClick={handleLoadMore} page={page} hideButton={hideButton}/>}
+      <ToastContainer autoClose={2000} />
+    </div>
+  );
 }
 
-App.propTypes = {
-  searchImage: PropTypes.string,
-  totalHits: PropTypes.number,
-  loading: PropTypes.bool,
-  error: PropTypes.string,
-  hits: PropTypes.arrayOf(PropTypes.object),
-  page: PropTypes.number,
-};
+// || Number(totalHits) < 13

@@ -11,7 +11,7 @@ export default class ImageGallery extends Component {
       <>
           <ul className={css.imageGallery}>
             {hits.map(hit => (
-              <ImageGalleryItem hit={hit} />
+              <ImageGalleryItem hit={hit} key={hit.id} />
             ))}
           </ul>
       </>
@@ -20,5 +20,5 @@ export default class ImageGallery extends Component {
 }
 
 ImageGallery.propTypes = {
-  hits: PropTypes.arrayOf(PropTypes.object),
+  hits: PropTypes.arrayOf(PropTypes.object.isRequired).isRequired,
 };

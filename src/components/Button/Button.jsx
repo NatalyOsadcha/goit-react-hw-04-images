@@ -1,27 +1,28 @@
-import React, { Component } from 'react';
+import React from 'react';
 import css from './Button.module.css';
 import PropTypes from 'prop-types';
 
-export default class Button extends Component {
-  handlePage = () => {
-    let page = this.props.page;
-    page += 1;
-    this.props.onClick({ page });
+export default function Button ({page, onClick, hideButton}){
+  const handlePage = () => {
+    let changePage = page;
+    changePage += 1;
+    onClick(changePage);
   };
-  render() {
     return (
       <button
         type="button"
         className={css.buttonLoadMore}
-        onClick={this.handlePage}
-        style={{ display: this.props.hideButton() }}
+        onClick={handlePage}
+        style={{ display: hideButton() }}
       >
         Load more
       </button>
     );
   }
-}
+
 
 Button.propTypes = {
   page: PropTypes.number.isRequired,
+  onClick: PropTypes.func.isRequired,
+  hideButton: PropTypes.func.isRequired
 };
