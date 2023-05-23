@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import { ToastContainer} from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { getSearchImage } from 'components/Api/getSearchImage';
 import Button from './Button/Button';
 import css from './App.module.css';
@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert';
 
 export default function App() {
   const [searchImage, setSearchImage] = useState('');
-  const [hits, setHits] = useState(null);
+  const [hits, setHits] = useState([]);
   const [totalHits, setTotalHits] = useState(null);
   const [IsLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +21,8 @@ export default function App() {
     setSearchImage(searchImage);
     setIsLoading(false);
     setPage(1);
+    setHits([]);
+    setTotalHits(null);
   };
 
   const handleLoadMore = page => {
@@ -29,7 +31,7 @@ export default function App() {
 
   const hideButton = () => {
     const finalPage = Math.ceil(Number(totalHits / 12));
-    if (page === finalPage ) {
+    if (page === finalPage || Number(totalHits) < 13) {
       return 'none';
     }
     return 'block';
@@ -42,12 +44,11 @@ export default function App() {
     setIsLoading(true);
     getSearchImage(searchImage, page)
       .then(data => {
-        console.log(data.hits, data.totalHits)
         if (data.hits) {
           setHits(prevHits => [...prevHits, ...data.hits]);
           setTotalHits(data.totalHits);
         }
-          
+
         return Promise.reject(data.message);
       })
       .catch(error => {
@@ -61,14 +62,12 @@ export default function App() {
       <Searchbar onSubmit={handleSearch} />
       {IsLoading && <BallTriangle color="#4b5cdd" />}
       {error && <Alert severity="error">Oops, something goes wrong</Alert>}
-      {hits && hits.length === 0 && (
+      {totalHits === 0 && (
         <Alert severity="warning">Nothing found for your request</Alert>
       )}
       {hits && hits.length > 0 && <ImageGallery hits={hits} />}
-      {hits && hits.length > 1 && <Button onClick={handleLoadMore} page={page} hideButton={hideButton}/>}
+      <Button onClick={handleLoadMore} page={page} hideButton={hideButton} />
       <ToastContainer autoClose={2000} />
     </div>
   );
 }
-
-// || Number(totalHits) < 13

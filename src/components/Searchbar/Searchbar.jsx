@@ -4,7 +4,7 @@ import { ReactComponent as GlassIcon } from '../../icons/glass.svg';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 
-export default function Searchbar({ onSubmit}) {
+export default function Searchbar({ onSubmit }) {
   const handleSubmit = evt => {
     evt.preventDefault();
     const form = evt.currentTarget;

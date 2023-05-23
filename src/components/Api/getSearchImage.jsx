@@ -11,5 +11,5 @@ export const getSearchImage = (search, page) => {
 
 getSearchImage.propTypes = {
   search: PropTypes.string.isRequired,
-  page: PropTypes.number.isRequired
-}
+  page: PropTypes.number.isRequired,
+};
